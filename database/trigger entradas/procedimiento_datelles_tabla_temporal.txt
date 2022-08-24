@@ -1,0 +1,35 @@
+DELIMITER $$
+CREATE PROCEDURE add_detalle_temp(codigo int, cantidad int, token_user varchar(50))
+	BEGIN 
+    
+        DECLARE precio_actual decimal(10,2);
+        SELECT precio INTO precio_actual FROM productos WHERE id = codigo;
+
+        INSERT INTO detalle_temp (token_user, id_product, cantidad, precio_venta) VALUES (token_user, codigo, cantidad,  								precio_actual);
+
+        SELECT tmp.id, tmp.id_product, tmp.cantidad, tmp.precio_venta, p.nombre_producto FROM detalle_temp tmp 
+        INNER JOIN productos p 
+        ON tmp.id_product = p.id
+        WHERE tmp.token_user = token_user;
+    
+   END;$$
+DELIMITER ;
+
+
+
+
+v2
+CREATE PROCEDURE add_detalle_temp(codigo int, cantidad int, token_user varchar(50))
+	BEGIN 
+    
+        DECLARE precio_actual decimal(10,2);
+        SELECT precio INTO precio_actual FROM productos WHERE id = codigo;
+
+        INSERT INTO detalle_temp (token_user, id_product, cantidad, precio_venta) VALUES (token_user, codigo, cantidad, precio_actual);
+
+        SELECT tmp.id, tmp.id_product, tmp.cantidad, tmp.precio_venta, p.nombre_producto FROM detalle_temp tmp 
+        INNER JOIN productos p 
+        ON tmp.id_product = p.id
+        WHERE tmp.token_user = token_user;
+    
+   END;;

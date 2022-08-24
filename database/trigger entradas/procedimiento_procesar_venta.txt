@@ -1,0 +1,48 @@
+DELIMITER $$
+	CREATE PROCEDURE procesar_venta(cod_usuario int, cod_cliente int, token varchar(50))
+    BEGIN
+    DECLARE factura int;
+    DECLARE registros int;
+    DECLARE total decimal(10,2);
+    DECLARE nueva_existencia int;
+    DECLARE existencia_actual int;
+    DECLARE tmp_cod_producto int;
+    DECLARE tmp_cant_producto int;
+    DECLARE a int;
+    SET a = 1;
+    
+    CREATE TEMPORARY TABLE tbl_tmp_tokenuser(
+    	id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        cod_prod BIGINT,
+        cant_prod int);
+    
+    SET registros = (SELECT COUNT(*) FROM detalle_temp WHERE token_user = token);
+    
+    IF registros > 0 THEN
+    
+    	INSERT INTO tbl_tmp_tokenuser(cod_prod, cant_prod) SELECT id_product, cantidad FROM detalle_temp WHERE token_user = token;
+        INSERT INTO factura(usuario, id_cliente) VALUES (cod_usuario, cod_cliente);
+        SET factura = LAST_INSERT_ID();
+        INSERT INTO detalle_factura(no_factura, cod_producto, cantidad, precio_venta) SELECT (factura) as no_factura, cod_producto, cantidad, precio_venta FROM detalle_temp WHERE token_user = token;
+        
+        WHILE a <= registros DO 
+        	SELECT cod_prod, cant_prod INTO tmp_cod_producto, tmp_cant_producto FROM tbl_tmp_tokenuser WHERE id = a;
+            SELECT cantidad INTO existencia_actual FROM productos WHERE id = tmp_cod_producto;
+            SET nueva_existencia = existencia_actual - tmp_cant_producto;
+            UPDATE productos SET cantidad = nueva_existencia WHERE id = tmp_cod_producto;
+            SET a = a + 1;
+        END WHILE;
+        
+        SET total = (SELECT SUM(cantidad * precio_venta) FROM detalle_temp WHERE token_user = token);
+        UPDATE factura set total_factura = total WHERE no_factura = factura;
+        
+        DELETE FROM detalle_temp WHERE token_user = token;
+        TRUNCATE TABLE tbl_tmp_tokenuser;
+        SELECT * FROM factura WHERE no_factura = factura;
+        
+    ELSE
+    	SELECT 0;
+    END IF;
+    
+    END; $$
+DELIMITER ;

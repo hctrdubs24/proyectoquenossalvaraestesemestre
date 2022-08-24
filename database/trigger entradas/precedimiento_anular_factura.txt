@@ -1,0 +1,39 @@
+DELIMITER $$
+CREATE PROCEDURE anular_factura(nom_factura int)
+	BEGIN
+    	DECLARE existe_factura int;
+        DECLARE registros int;
+        DECLARE a int;
+        DECLARE cod_producto int;
+        DECLARE cant_producto int;
+        DECLARE existencia_actual int;
+        DECLARE nueva_existencia int;
+                
+        SET existe_factura = (SELECT COUNT(*) FROM factura WHERE id_factura = nom_factura AND estatus = 1);
+        
+        IF existe_factura > 0 THEN
+        	CREATE TEMPORARY TABLE tbl_tmp(
+            	id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                cod_prod BIGINT,
+                cant_prod int
+            );
+            SET a = 1;
+            SET registros = (SELECT COUNT(*) FROM detalle_factura WHERE no_factura = nom_factura);
+            IF registros > 0 THEN
+            	INSERT INTO tbl_tmp (cod_prod, cant_prod) SELECT cod_producto, cantidad FROM detalle_factura WHERE no_factura = nom_factura;
+                WHILE a <= registros DO
+                	SELECT cod_prod, cant_prod INTO cod_producto, cant_producto FROM tbl_tmp WHERE id = a;
+                    SELECT cantidad INTO existencia_actual FROM productos WHERE id = cod_producto;
+                    SET nueva_existencia = existencia_actual + cant_producto;
+                    UPDATE productos SET cantidad = nueva_existencia WHERE id = cod_producto;
+                    SET a = a + 1;
+                END WHILE;
+                UPDATE factura SET estatus = 2 WHERE id_factura = nom_factura;
+                DROP TABLE tbl_tmp;
+                SELECT * FROM factura WHERE id_factura = nom_factura;
+            END IF;
+        ELSE
+        	SELECT 0 factura;
+        END IF;
+    END;$$
+DELIMITER ;

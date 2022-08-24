@@ -1,0 +1,20 @@
+DELIMITER $$
+	
+    CREATE PROCEDURE actualizar_producto_cantidad (n_cantidad int, cod_producto int)
+    BEGIN 
+    	DECLARE nueva_existencia int;
+        DECLARE nuevo_total decimal(10,2);
+        
+        DECLARE cant_actual int;
+        
+        DECLARE actual_existencia int;
+        
+        SELECT cantidad INTO actual_existencia FROM productos WHERE id = cod_producto;
+        SET nueva_existencia = actual_existencia + n_cantidad;
+        
+        UPDATE productos SET cantidad = nueva_existencia WHERE id = cod_producto;
+        
+        SELECT nueva_existencia;
+        
+        END $$
+DELIMITER ;

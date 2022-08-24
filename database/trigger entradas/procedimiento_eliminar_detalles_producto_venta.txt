@@ -1,0 +1,9 @@
+DELIMITER $$
+	CREATE PROCEDURE del_detalle_temp(id_detalle int, token varchar(50))
+    BEGIN
+    DELETE FROM detalle_temp WHERE id = id_detalle;
+    
+    SELECT tmp.id, tmp.id_product, tmp.cantidad, tmp.precio_venta, p.nombre_producto FROM detalle_temp tmp INNER JOIN productos p on tmp.id_product = p.id WHERE tmp.token_user = token;
+    
+    END; $$
+DELIMITER ;

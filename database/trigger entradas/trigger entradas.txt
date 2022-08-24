@@ -1,0 +1,7 @@
+DELIMITER //
+	CREATE TRIGGER entradas_A_I AFTER INSERT ON productos FOR EACH ROW
+    BEGIN
+    INSERT INTO entradas (id_producto, nombre_producto, cantidad, precio, id_cat)
+    VALUES (new.id, new.nombre_producto, new.cantidad, new.precio, new.id_cat);
+    END; //
+DELIMITER ;
